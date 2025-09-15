@@ -37,10 +37,10 @@ const UserProfile = ({ username }) => {
     setLoading(true);
     try {
       const [profileRes, solvedRes, langRes, skillRes] = await Promise.allSettled([
-        axios.get(`/api/users/profile/${username}`),
-        axios.get(`/api/users/solved/${username}`),
-        axios.get(`/api/users/language-stats/${username}`),
-        axios.get(`/api/users/skill-stats/${username}`)
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users/profile/${username}`),
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users/solved/${username}`),
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users/language-stats/${username}`),
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users/skill-stats/${username}`)
       ]);
 
       if (profileRes.status === 'fulfilled') {

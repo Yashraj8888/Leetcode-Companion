@@ -73,7 +73,7 @@ const ProblemAnalysis = ({ username }) => {
       }
 
       // Make API call to analyze the problem
-      const response = await axios.post('/api/analysis/analyze', {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/analysis/analyze`, {
         problemId,
         username: username || undefined,
         forceRefresh
@@ -108,7 +108,7 @@ const ProblemAnalysis = ({ username }) => {
   const fetchSimilarProblems = async (problemId) => {
     setLoadingSimilar(true);
     try {
-      const response = await axios.get(`/api/analysis/similar/${problemId}?limit=5`);
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/analysis/similar/${problemId}?limit=5`);
       setSimilarProblems(response.data.similarProblems || []);
     } catch (error) {
       console.error('Error fetching similar problems:', error);
@@ -173,7 +173,7 @@ const ProblemAnalysis = ({ username }) => {
         <form onSubmit={handleAnalyze} className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-secondary-700 dark:text-dark-700">
-              Problem Number or URL
+              Problem URL
             </label>
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 w-5 h-5" />
@@ -181,7 +181,7 @@ const ProblemAnalysis = ({ username }) => {
                 type="text"
                 value={problemInput}
                 onChange={(e) => setProblemInput(e.target.value)}
-                placeholder="Enter problem number (e.g., '1', '29'), slug (e.g., 'two-sum'), or URL"
+                placeholder="Enter problem URL"
                 className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-dark-400 rounded-lg bg-white dark:bg-dark-100 text-secondary-900 dark:text-dark-800 placeholder-secondary-500 dark:placeholder-dark-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
