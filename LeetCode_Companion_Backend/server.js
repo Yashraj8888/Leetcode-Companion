@@ -103,30 +103,37 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+
 // Function to wake up the API service
 const wakeAPIService = async (retries = 5, delay = 4000) => {
   if (!process.env.LEETCODE_API_BASE) {
-    console.log("⚠️ LEETCODE_API_BASE is not set in .env");
-    return;
+    console.log("⚠️ LEETCODE_API_BASE not set");
+    return false;
   }
+
+  const wakeUrl = `${process.env.LEETCODE_API_BASE.replace(/\/+$/, '')}/`;
+  console.log(`🎯 Pinging: ${wakeUrl}`);
 
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`⏳ Waking API service (attempt ${i + 1})...`);
-      const response = await axios.get(process.env.LEETCODE_API_BASE, {
+      console.log(`⏳ Attempt ${i + 1}/${retries}...`);
+      
+      const response = await axios.get(wakeUrl, {
         timeout: 20000,
-        headers: { 'User-Agent': 'Mozilla/5.0 (backend-pinger)' }
+        headers: { 'User-Agent': 'Mozilla/5.0 (backend-pinger)' },
+        validateStatus: status => status >= 200 && status < 500
       });
-      console.log("✅ API service awake:", response.status);
+      
+      console.log(`✅ API awake! Status: ${response.status}`);
       return true;
+      
     } catch (err) {
-      console.log(`⚠️ Attempt ${i + 1} failed: ${err.message}`);
-      if (i < retries - 1) {
-        await new Promise(res => setTimeout(res, delay));
-      }
+      console.log(`❌ Failed: ${err.response?.status || err.code} - ${err.message}`);
+      if (i < retries - 1) await new Promise(res => setTimeout(res, delay));
     }
   }
-  console.log("❌ Could not wake API service after retries");
+  
+  console.log(`❌ All ${retries} attempts failed for: ${wakeUrl}`);
   return false;
 };
 
