@@ -104,19 +104,30 @@ app.use('*', (req, res) => {
 });
 
 // Function to wake up the API service
-const wakeAPIService = async () => {
+const wakeAPIService = async (retries = 5, delay = 4000) => {
   if (!process.env.LEETCODE_API_BASE) {
     console.log("⚠️ LEETCODE_API_BASE is not set in .env");
     return;
   }
 
-  try {
-    console.log("⏳ Waking up API service...");
-    const response = await axios.get(process.env.LEETCODE_API_BASE, { timeout: 5000 });
-    console.log("✅ API service awake:", response.status, response.data ? "Data received" : "No data");
-  } catch (err) {
-    console.log("⚠️ Could not wake API service:", err.message);
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`⏳ Waking API service (attempt ${i + 1})...`);
+      const response = await axios.get(process.env.LEETCODE_API_BASE, {
+        timeout: 20000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (backend-pinger)' }
+      });
+      console.log("✅ API service awake:", response.status);
+      return true;
+    } catch (err) {
+      console.log(`⚠️ Attempt ${i + 1} failed: ${err.message}`);
+      if (i < retries - 1) {
+        await new Promise(res => setTimeout(res, delay));
+      }
+    }
   }
+  console.log("❌ Could not wake API service after retries");
+  return false;
 };
 
 // Initialize database and start server
