@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const NodeCache = require('node-cache');
+const axios = require('axios'); 
 require('dotenv').config();
 
 const { initializeDatabase } = require('./config/database');
@@ -102,17 +103,37 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+// Function to wake up the API service
+const wakeAPIService = async () => {
+  if (!process.env.LEETCODE_API_BASE) {
+    console.log("⚠️ LEETCODE_API_BASE is not set in .env");
+    return;
+  }
+
+  try {
+    console.log("⏳ Waking up API service...");
+    const response = await axios.get(process.env.LEETCODE_API_BASE, { timeout: 5000 });
+    console.log("✅ API service awake:", response.status, response.data ? "Data received" : "No data");
+  } catch (err) {
+    console.log("⚠️ Could not wake API service:", err.message);
+  }
+};
+
 // Initialize database and start server
 const startServer = async () => {
   try {
     await initializeDatabase();
     
-    app.listen(PORT, () => {
+    // Wake up the API service in background
+    await wakeAPIService();
+
+    app.listen(PORT,() => {
       console.log(`🚀 LeetCode Companion Backend running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 Database: Connected to PostgreSQL`);
       console.log(`🤖 AI: Gemini integration enabled`);
     });
+
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
